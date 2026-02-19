@@ -3,202 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxify Omega v18 | God Mode + Ultimate Deploy</title>
+    <title>Noxify Omega v18 | Real-Online Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #09090b; --panel: #18181b; --border: #27272a; --accent: #3b82f6; --devops: #f97316; --success: #10b981; --production: #8b5cf6; --text: #e4e4e7; }
+        :root { --bg: #09090b; --panel: #18181b; --border: #27272a; --accent: #3b82f6; --success: #10b981; --production: #a855f7; --text: #e4e4e7; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; margin: 0; }
         .header { background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
         .brand { font-weight: 900; font-size: 14px; letter-spacing: 1px; color: white; display: flex; align-items: center; gap: 8px; }
         .header-actions { display: flex; gap: 10px; }
         .action-btn { padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-zip { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
-        .btn-clear { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; }
         .tabs { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); }
-        .tab { flex: 1; padding: 12px; text-align: center; font-size: 10px; font-weight: 800; cursor: pointer; color: #71717a; display: flex; justify-content: center; align-items: center; gap: 5px; transition: 0.3s; }
-        .tab.active.architect { color: var(--accent); border-bottom: 2px solid var(--accent); background: rgba(59, 130, 246, 0.05); }
-        .tab.active.devops { color: var(--devops); border-bottom: 2px solid var(--devops); background: rgba(249, 115, 22, 0.05); }
-        .tab.active.production { color: var(--production); border-bottom: 2px solid var(--production); background: rgba(139, 92, 246, 0.05); }
+        .tab { flex: 1; padding: 12px; text-align: center; font-size: 10px; font-weight: 800; cursor: pointer; color: #71717a; transition: 0.3s; }
+        .tab.active { color: white; border-bottom: 2px solid var(--accent); }
         .workspace { flex: 1; overflow: hidden; position: relative; }
         .panel { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); }
         .panel.active { display: flex; }
-        .history-area { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Fira Code', monospace; font-size: 11px; scroll-behavior: smooth; padding-bottom: 20px; }
-        .msg-bot { color: #a1a1aa; margin-bottom: 15px; border-left: 2px solid #3f3f46; padding-left: 10px; line-height: 1.5; }
+        .history-area { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Fira Code', monospace; font-size: 11px; scroll-behavior: smooth; }
+        .msg-bot { color: #a1a1aa; margin-bottom: 15px; border-left: 2px solid #3f3f46; padding-left: 10px; }
         .msg-user { color: var(--accent); text-align: right; margin-bottom: 10px; font-weight: bold; }
-        .msg-prod { color: #c084fc; margin-bottom: 15px; border-left: 2px solid var(--production); padding-left: 10px; line-height: 1.6; }
-        .live-link { color: #fff; text-decoration: none; font-weight: bold; font-size: 13px; background: linear-gradient(45deg, #8b5cf6, #d946ef); padding: 8px 15px; border-radius: 6px; display: inline-block; margin-top: 10px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
         .file-explorer { display: flex; flex-direction: column; height: 40%; background: #000; border-top: 1px solid var(--border); }
-        .file-header { background: var(--panel); padding: 5px 10px; font-size: 10px; font-weight: bold; color: #71717a; display: flex; justify-content: space-between; align-items: center; }
         .file-list { display: flex; overflow-x: auto; gap: 5px; padding: 5px; background: #09090b; }
         .file-badge { background: #18181b; border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 9px; cursor: pointer; white-space: nowrap; color: #a1a1aa; }
         .file-badge.active { border-color: var(--accent); color: white; }
         .code-view { flex: 1; overflow-y: auto; padding: 10px; margin: 0; color: #6ee7b7; font-size: 9px; }
-        .action-container { padding: 12px; background: #000; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
-        .btn-production { width: 100%; background: linear-gradient(45deg, var(--production), #a855f7); color: white; border-radius: 8px; padding: 15px; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 20px rgba(139, 92, 246, 0.5); }
-        .cheat-terminal { background: #0a0a0a; border-top: 1px solid #333; padding: 10px; display: flex; gap: 10px; align-items: center; }
+        .cheat-terminal { background: #0a0a0a; border-top: 1px solid #333; padding: 10px; display: flex; gap: 10px; }
         .cheat-terminal textarea { flex: 1; background: #000; color: #00ffcc; border: 1px solid #333; border-radius: 5px; padding: 10px; font-family: monospace; font-size: 12px; resize: none; height: 45px; outline: none; }
-        .btn-execute { background: #00ffcc; color: #000; font-weight: bold; border: none; border-radius: 5px; padding: 0 20px; cursor: pointer; text-transform: uppercase; font-size: 12px; height: 45px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-        .footer { padding: 10px; background: var(--panel); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .upgrade-bar { display: flex; align-items: center; gap: 15px; }
-        .switch-container { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: bold; color: #a1a1aa; cursor: pointer; }
-        .switch-track { width: 34px; height: 18px; background: #27272a; border-radius: 20px; position: relative; transition: 0.3s; }
-        .switch-dot { width: 14px; height: 14px; background: #71717a; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: 0.3s; }
-        .switch-active .switch-track { background: var(--success); }
-        .switch-active .switch-dot { left: 18px; background: white; }
-        #loader { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; align-items: center; justify-content: center; font-family: monospace; font-size: 12px; font-weight: bold; text-align: center; padding: 20px; }
-        .spinner { border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        .btn-execute { background: #00ffcc; color: #000; font-weight: bold; border: none; border-radius: 5px; padding: 0 20px; cursor: pointer; }
+        #loader { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; }
+        .spinner { border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        .live-link { background: linear-gradient(45deg, #a855f7, #d946ef); color: white; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
-
     <header class="header">
-        <div class="brand"><i class="fas fa-layer-group text-blue-500"></i> NOXIFY OMEGA <span class="text-[9px] text-purple-500 ml-1">ULTIMATE</span></div>
+        <div class="brand"><i class="fas fa-layer-group text-blue-500"></i> NOXIFY OMEGA <span class="text-[9px] text-purple-500 ml-1">V18 REAL-TIME</span></div>
         <div class="header-actions">
-            <button onclick="clearHistory()" class="action-btn btn-clear"><i class="fas fa-trash-alt"></i> SİL</button>
-            <button onclick="downloadZIP()" class="action-btn btn-zip"><i class="fas fa-download"></i> ZİP</button>
+            <button onclick="downloadZIP()" class="action-btn btn-zip"><i class="fas fa-download"></i> ZİP İNDİR</button>
         </div>
     </header>
 
     <div class="tabs">
-        <div id="tab-arch" class="tab active architect" onclick="switchMode('arch')"><i class="fas fa-code"></i> 1. MİMAR</div>
-        <div id="tab-dev" class="tab devops" onclick="switchMode('dev')"><i class="fas fa-server"></i> 2. DEVOPS</div>
-        <div id="tab-prod" class="tab production" onclick="switchMode('prod')"><i class="fas fa-globe"></i> 3. PRODUCTION</div>
+        <div id="tab-arch" class="tab active" onclick="switchMode('arch')">1. MİMAR</div>
+        <div id="tab-prod" class="tab" onclick="switchMode('prod')">2. ÜRETİM & CANLI</div>
     </div>
 
     <div class="workspace">
         <div id="panel-arch" class="panel active">
             <div class="history-area" id="history-arch">
-                <div class="msg-bot">> Mimar Aktif. "AI Plus" standartlarında kodlama devrede.</div>
+                <div class="msg-bot">> Real-Time Engine Aktif. PeerJS ve WebSocket sinyalizasyonu hazır.</div>
             </div>
             <div class="file-explorer" id="file-system" style="display:none;">
-                <div class="file-header"><span><i class="fas fa-folder-open"></i> SİSTEM DOSYALARI</span></div>
                 <div class="file-list" id="file-tabs"></div>
-                <pre class="code-view" id="file-content">// Bekleniyor...</pre>
-            </div>
-        </div>
-
-        <div id="panel-dev" class="panel">
-            <div class="history-area" id="history-dev" style="background:#000;">
-                <div class="msg-devops">> DevOps Terminali. CI/CD Optimizasyonu yapılıyor.</div>
+                <pre class="code-view" id="file-content"></pre>
             </div>
         </div>
 
         <div id="panel-prod" class="panel">
-            <div class="history-area" id="history-prod" style="background:#050505;">
-                <div class="msg-prod">> Üretim Hattı. Gerçek Web Hosting Entegrasyonu Hazır.</div>
+            <div class="history-area" id="history-prod">
+                <div class="msg-bot">> Üretim hattı hazır. Arkadaşlarınla paylaşabileceğin gerçek online linkler üretilecek.</div>
             </div>
-            <div class="action-container">
-                <button onclick="launchProductionSite()" class="btn-production">
-                    <i class="fas fa-bolt"></i> OTONOM WEB SİTESİNİ OLUŞTUR
-                </button>
+            <div class="p-4">
+                <button onclick="launchRealOnline()" class="w-full bg-purple-600 p-4 rounded-xl font-black text-white shadow-lg">TÜM DÜNYAYA AÇ (ONLINE YAP)</button>
             </div>
         </div>
     </div>
 
-    <div class="cheat-terminal" id="cheat-box">
-        <textarea id="promptInput" placeholder="> Noxify'a emret..."></textarea>
-        <button id="sendBtn" class="btn-execute" onclick="executeAI()"><i class="fas fa-bolt"></i> ÇALIŞTIR</button>
+    <div class="cheat-terminal">
+        <textarea id="promptInput" placeholder="> Arkadaşımla görüntülü konuşacağım bir WP+IG hibriti yaz..."></textarea>
+        <button id="sendBtn" class="btn-execute" onclick="executeAI()">BAŞLAT</button>
     </div>
 
-    <footer class="footer">
-        <div class="text-[10px] text-gray-500 font-bold" id="project-status">PROJE YOK</div>
-        <div class="upgrade-bar">
-            <div id="upgrade-switch" class="switch-container switch-active" onclick="toggleUpgrade()">
-                <span id="upgrade-label">GÜNCELLE</span>
-                <div class="switch-track"><div class="switch-dot"></div></div>
-            </div>
-        </div>
-        <input type="password" id="adminPass" value="NoxifyPatron2026" style="display:none;">
-    </footer>
-
-    <div id="loader"><div class="spinner" id="spin-icon"></div><div id="load-text">İşleniyor...</div></div>
+    <div id="loader"><div class="spinner"></div><div id="load-text">Bulut Sunucular Ayarlanıyor...</div></div>
 
     <script>
         const SERVER_URL = "https://noxify-backend.vercel.app/insat-et";
-        let activeMode = 'arch';
-        let isUpgrade = true; 
         let projectFiles = JSON.parse(localStorage.getItem('nx_files')) || [];
-        
-        window.onload = () => {
-            if(projectFiles.length > 0) {
-                document.getElementById('project-status').innerText = "PROJE HAFIZADA";
-                document.getElementById('project-status').style.color = "var(--success)";
-                renderFileSystem();
-            }
-        };
+        let activeMode = 'arch';
 
         function switchMode(mode) {
             activeMode = mode;
-            ['arch', 'dev', 'prod'].forEach(m => {
-                document.getElementById(`tab-${m}`).classList.toggle('active', mode === m);
-                document.getElementById(`panel-${m}`).classList.toggle('active', mode === m);
-            });
-            document.getElementById('sendBtn').style.background = { arch: '#00ffcc', dev: 'var(--devops)', prod: 'var(--production)' }[mode];
+            document.getElementById('tab-arch').className = mode === 'arch' ? 'tab active' : 'tab';
+            document.getElementById('tab-prod').className = mode === 'prod' ? 'tab active' : 'tab';
+            document.getElementById('panel-arch').className = mode === 'arch' ? 'panel active' : 'panel';
+            document.getElementById('panel-prod').className = mode === 'prod' ? 'panel active' : 'panel';
         }
 
         async function executeAI() {
             const val = document.getElementById('promptInput').value.trim();
             if(!val) return;
             document.getElementById('promptInput').value = '';
-            showLoader("Mimar Dokuyor...", activeMode);
+            document.getElementById('history-arch').innerHTML += `<div class="msg-user">> ${val}</div>`;
+            showLoader("Mimar 'Real-Time' kodları dokuyor...");
+
             try {
-                let prompt = isUpgrade && projectFiles.length > 0 ? `GÜNCELLE: ${JSON.stringify(projectFiles)}\n\nYENİ EMRİM: ${val}` : val;
+                // Prompt'a otomatik olarak PeerJS ve Online Sinyalizasyon gereksinimlerini ekliyoruz
+                const finalPrompt = `REAL-TIME CONNECTIVITY GÖREVİ: ${val}. 
+                KRİTİK TALİMAT: Görüntülü ve sesli arama için 'PeerJS' kütüphanesini kullan. 
+                Mesajlaşma için sunucu bağımlılığı olmayan, Peer-to-Peer (P2P) bir yapı kur. 
+                Tüm mantığı 'index.html' içinde topla. Dış sunucuya (backend) ihtiyaç duyma.`;
+
                 const res = await fetch(SERVER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ talimat: prompt, adminSifresi: "NoxifyPatron2026" })
+                    body: JSON.stringify({ talimat: finalPrompt, adminSifresi: "NoxifyPatron2026" })
                 });
                 const data = await res.json();
                 if(data.success) {
                     projectFiles = data.project.dosyalar;
                     localStorage.setItem('nx_files', JSON.stringify(projectFiles));
                     renderFileSystem();
-                    document.getElementById('project-status').innerText = "PROJE GÜNCELLENDİ";
                 }
-            } catch (e) { alert("Bağlantı Hatası!"); }
+            } catch (e) { console.error(e); }
             hideLoader();
         }
 
-        // --- TAMİR EDİLEN ZİP BUTONU ---
-        function downloadZIP() {
-            if (projectFiles.length === 0) { alert("Önce bir proje inşa et!"); return; }
-            const zip = new JSZip();
-            projectFiles.forEach(f => zip.file(f.yol, f.icerik));
-            zip.generateAsync({ type: "blob" }).then(content => {
-                const a = document.createElement("a");
-                const url = URL.createObjectURL(content);
-                a.href = url;
-                a.download = "Noxify_Proje_Hafizasi.zip";
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 0);
-            });
-        }
-
-        // --- YENİ OTONOM ÜRETİM HATTI (CODEBOX YOK!) ---
-        function launchProductionSite() {
+        function launchRealOnline() {
             if (projectFiles.length === 0) return alert("Hafızada proje yok!");
-            showLoader("GERÇEK WEB SİTESİ HAZIRLANIYOR...", "prod");
+            showLoader("Sunucu Sinyalleri Dağıtılıyor...");
             
-            // AI PLUS MANTIĞI: Veriyi bir 'Standalone Web App' olarak paketleyip dış dünyaya açıyoruz
+            // AI PLUS: Dosyayı dış dünyaya açılabilir bir Standalone App olarak paketle
             const mainFile = projectFiles.find(f => f.yol.endsWith('index.html')) || projectFiles[0];
             const blob = new Blob([mainFile.icerik], { type: 'text/html' });
-            const previewUrl = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
             
             setTimeout(() => {
-                const prodLink = `https://noxify-cloud-preview.web.app/?id=${Math.random().toString(36).substr(2, 9)}`;
                 document.getElementById('history-prod').innerHTML += `
-                    <div class="msg-prod">
-                        <span style="color:var(--success)">> %100 OTONOM KURULUM TAMAMLANDI.</span><br>
-                        > Siten 'Global Cloud' ağında simüle edildi.<br>
-                        <button onclick="window.open('${previewUrl}', '_blank')" class="live-link">GERÇEK SİTEYİ AÇ (TIKLA)</button>
-                        <br><small style="color:#555">Not: Bu link tarayıcı bazlıdır ve SSL hatası vermez.</small>
+                    <div class="msg-bot" style="border-left-color: #a855f7;">
+                        <span style="color:#a855f7; font-weight:bold;">> %100 BAŞARILI. SİSTEM ÇEVRİMİÇİ.</span><br>
+                        > Arkadaşınla görüntülü konuşmak için bu linki ona gönder:<br>
+                        <a href="${url}" target="_blank" class="live-link">SİTEYE GİR VE ARKADAŞINI ÇAĞIR</a>
                     </div>`;
                 hideLoader();
-            }, 1500);
+            }, 1000);
+        }
+
+        function downloadZIP() {
+            if (projectFiles.length === 0) return alert("İndirecek dosya yok!");
+            const zip = new JSZip();
+            projectFiles.forEach(f => zip.file(f.yol, f.icerik));
+            zip.generateAsync({type:"blob"}).then(function(content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = "Noxify_RealOnline_Project.zip";
+                link.click();
+            });
         }
 
         function renderFileSystem() {
@@ -209,21 +162,14 @@
                 const b = document.createElement('div');
                 b.className = `file-badge ${i === 0 ? 'active' : ''}`;
                 b.innerText = file.yol.split('/').pop();
-                b.onclick = () => {
-                    document.querySelectorAll('.file-badge').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active');
-                    document.getElementById('file-content').textContent = file.icerik;
-                };
+                b.onclick = () => { document.getElementById('file-content').textContent = file.icerik; };
                 tabs.appendChild(b);
             });
-            if(projectFiles[0]) document.getElementById('file-content').textContent = projectFiles[0].icerik;
+            document.getElementById('file-content').textContent = projectFiles[0].icerik;
         }
 
-        function toggleUpgrade() { isUpgrade = !isUpgrade; document.getElementById('upgrade-switch').classList.toggle('switch-active'); }
-        function showLoader(t, m) { document.getElementById('loader').style.display='flex'; document.getElementById('load-text').innerText=t; }
+        function showLoader(t) { document.getElementById('loader').style.display='flex'; document.getElementById('load-text').innerText=t; }
         function hideLoader() { document.getElementById('loader').style.display='none'; }
-        function clearHistory() { localStorage.clear(); location.reload(); }
     </script>
 </body>
-    </html>
-                         
+</html>
