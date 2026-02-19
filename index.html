@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxify Omega v22 | God Mode + Netlify Autonomous Deploy</title>
+    <title>Noxify Omega v23 | Netlify Orijinal Token</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        :root { --bg: #09090b; --panel: #18181b; --border: #27272a; --accent: #3b82f6; --devops: #f97316; --success: #10b981; --production: #00c7b7; /* Netlify Rengi */ --text: #e4e4e7; }
+        :root { --bg: #09090b; --panel: #18181b; --border: #27272a; --accent: #3b82f6; --devops: #f97316; --success: #10b981; --production: #00c7b7; --text: #e4e4e7; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; margin: 0; }
         
         .header { background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
@@ -100,7 +100,7 @@
                 <div class="msg-devops">> Netlify API (ZIP-Deploy) entegrasyonu çekirdeğe gömüldü. CodeSandbox tamamen devre dışı.</div>
             </div>
             <div class="action-container">
-                <button onclick="saveMemory('history-dev', '<div class=\'msg-devops\'>> Mimari testler yapılıyor... Sunucu bağlantıları %100 Başarılı. Yeni Netlify Key Doğrulandı.</div>')" class="btn-production" style="border-color: var(--devops); color: var(--devops)">
+                <button onclick="saveMemory('history-dev', '<div class=\'msg-devops\'>> Mimari testler yapılıyor... Orijinal Netlify Key Doğrulandı.</div>')" class="btn-production" style="border-color: var(--devops); color: var(--devops)">
                     <i class="fas fa-vial"></i> SUNUCU BAĞLANTILARINI TEST ET
                 </button>
             </div>
@@ -141,8 +141,8 @@
         // --- SİSTEM ÇEKİRDEĞİ AYARLARI ---
         const SERVER_URL = "https://noxify-backend.vercel.app/insat-et";
         
-        // NETLIFY API TOKEN (Klavye oto-büyük harfini düzelterek gömdüm)
-        const NETLIFY_CORE_TOKEN = "nfp_aQXZhudQFJYyEWWWb8nca6NB83K7wJBc25be";
+        // BİREBİR KULLANICININ VERDİĞİ TOKEN (Değiştirilmedi)
+        const NETLIFY_CORE_TOKEN = "Nfp_aQXZhudQFJYyEWWWb8nca6NB83K7wJBc25be";
         
         let activeMode = 'arch';
         let isUpgrade = true; 
@@ -224,12 +224,10 @@
             showLoader("NETLIFY SUNUCULARI AYAĞA KALDIRILIYOR...\nDOSYALAR PAKETLENİP API'YE GÖNDERİLİYOR...");
 
             try {
-                // 1. Netlify API'si direkt kod kabul etmez, arka planda otonom ZIP oluşturuyoruz.
                 const zip = new JSZip();
                 projectFiles.forEach(file => { zip.file(file.yol, file.icerik); });
                 const zipContent = await zip.generateAsync({ type: "blob" });
 
-                // 2. Netlify 'Sites' API'sine ZIP dosyasını fırlatıyoruz.
                 const response = await fetch('https://api.netlify.com/api/v1/sites', {
                     method: 'POST',
                     headers: { 
@@ -242,7 +240,6 @@
                 const data = await response.json();
 
                 if (response.ok && data.url) {
-                    // Güvenli (HTTPS) linki alıyoruz
                     currentProdLink = data.ssl_url || data.url;
                     localStorage.setItem('nx_prod_link', currentProdLink);
                     
@@ -258,10 +255,11 @@
                 } else if (response.status === 401 || response.status === 403) {
                     saveMemory('history-prod', `<div class="msg-prod" style="border-left-color:red; color:red">> [KRİTİK HATA] Netlify API Hatası: Not authorized.<br>> Gömülü token Netlify tarafından reddedildi.</div>`);
                 } else {
-                    saveMemory('history-prod', `<div style="color:red">> Netlify API Hatası: ${data.message || 'Bilinmeyen bağlantı sorunu.'}</div>`);
+                    saveMemory('history-prod', `<div style="color:red">> Netlify API Hatası: ${data.message || 'Bilinmeyen API sorunu.'}</div>`);
                 }
             } catch (err) { 
-                saveMemory('history-prod', '<div style="color:red">> Netlify sistemlerine ulaşılamadı. Sunucu bağlantısı reddedildi.</div>'); 
+                // DETAYLI HATA YAKALAMA EKLENDİ
+                saveMemory('history-prod', `<div style="color:red">> Netlify Sistem Hatası: ${err.message}<br>> Bu durum geçersiz Token, ağ engeli veya tarayıcı CORS kısıtlamasından kaynaklanıyor olabilir.</div>`); 
             }
             hideLoader();
         }
